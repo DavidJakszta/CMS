@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="cms.client/cms.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="CMS.Server/CMS.Server.csproj" />
+</Solution>
