@@ -1,3 +1,4 @@
+using CMS.Server.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CMS.Server.Controllers

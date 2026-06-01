@@ -1,4 +1,4 @@
-namespace CMS.Server
+namespace CMS.Server.Models
 {
     public class WeatherForecast
     {
