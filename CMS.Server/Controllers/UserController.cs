@@ -9,7 +9,7 @@ namespace CMS.Server.Controllers
 
     {
         [HttpPost]
-        public IActionResult CreateUser([FromBody] User user)
+        public IActionResult CreateUser([FromBody] ApplicationUser user)
         {
             return null;
         }
