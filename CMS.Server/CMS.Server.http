@@ -4,3 +4,50 @@ GET {{CMS.Server_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+POST {{CMS.Server_HostAddress}}/api/user/register
+Content-Type: application/json
+
+{
+  "userName": "testuser1",
+  "email": "test@example.com",
+  "password": "Password123!",
+  "displayName": "Test User"
+}
+
+###
+
+POST {{CMS.Server_HostAddress}}/api/user/register
+Content-Type: application/json
+
+{
+  "userName": "admin",
+  "email": "admin@example.com",
+  "password": "Admin123!",
+  "displayName": "Admin User"
+}
+
+###
+
+GET {{CMS.Server_HostAddress}}/api/user
+Accept: application/json
+
+###
+
+GET {{CMS.Server_HostAddress}}/api/user/1
+Accept: application/json
+
+###
+
+PUT {{CMS.Server_HostAddress}}/api/user/1
+Content-Type: application/json
+
+{
+  "displayName": "Updated Name"
+}
+
+###
+
+DELETE {{CMS.Server_HostAddress}}/api/user/1
+
+###

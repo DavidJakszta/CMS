@@ -1,11 +1,13 @@
-﻿namespace CMS.Server.Interfaces
+﻿using CMS.Server.Models.DTOs;
+
+namespace CMS.Server.Interfaces
 {
     public interface IUserService
     {
-        void hashPassword(string Password);
-        void getUser();
-        void createUser(IUser User);
-        void changeUser(string Id, IUser User);
-        void deleteUser(string Id);
+        Task<UserResponse> CreateUserAsync(RegisterRequest request);
+        Task<UserResponse?> GetUserByIdAsync(int id);
+        Task<List<UserResponse>> GetAllUsersAsync();
+        Task<UserResponse?> UpdateUserAsync(int id, UpdateUserRequest request);
+        Task<bool> DeleteUserAsync(int id);
     }
 }
