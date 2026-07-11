@@ -15,7 +15,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
+    options.User.RequireUniqueEmail = true
+    )
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 

@@ -1,4 +1,0 @@
-TODO List
-1. Make Data Models for User: Name, E-mail, Password, Role
-2. Create Logic for managing Users : CRUD
-3. Create API Routes

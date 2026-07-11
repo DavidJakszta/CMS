@@ -17,6 +17,22 @@ namespace CMS.Server.DB
         {
             
         }
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<ApplicationUser>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            builder.Entity<ApplicationUser>()
+            .HasIndex(u => u.UserName)
+            .IsUnique();
+
+            builder.Entity<ApplicationUser>()
+                .HasIndex(u => u.DisplayName)
+                .IsUnique();
+        }
     }
 }
 

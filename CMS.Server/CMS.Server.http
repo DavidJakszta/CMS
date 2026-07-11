@@ -9,10 +9,10 @@ POST {{CMS.Server_HostAddress}}/api/user/register
 Content-Type: application/json
 
 {
-  "userName": "testuser1",
-  "email": "test@example.com",
+  "userName": "testuser1532",
+  "email": "test@example.com12",
   "password": "Password123!",
-  "displayName": "Test User"
+  "displayName": "Test User323"
 }
 
 ###

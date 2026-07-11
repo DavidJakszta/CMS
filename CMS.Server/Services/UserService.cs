@@ -15,8 +15,35 @@ namespace CMS.Server.Services
             _userManager = userManager;
         }
 
-        public async Task<UserResponse> CreateUserAsync(RegisterRequest request)
+        public async Task<RegisterResult> CreateUserAsync(RegisterRequest request)
         {
+            var errors = new List<string>();
+
+            var emailExists = await _userManager.Users
+                .AnyAsync(u => u.Email == request.Email);
+            if (emailExists)
+                errors.Add("Email is already in use.");
+
+            var displayNameExists = await _userManager.Users
+                .AnyAsync(u => u.DisplayName == request.DisplayName);
+            if (displayNameExists)
+                errors.Add("Display name is already in use.");
+
+            if (errors.Count > 0)
+                return new RegisterResult { Success = false, Errors = errors };
+
+            var userNameTaken = await _userManager.FindByNameAsync(request.UserName);
+            if (userNameTaken is not null)
+            {
+                var suggested = await GenerateSuggestedUserNameAsync(request.UserName);
+                return new RegisterResult
+                {
+                    Success = false,
+                    Errors = ["Username is already taken."],
+                    SuggestedUserName = suggested
+                };
+            }
+
             var user = new ApplicationUser
             {
                 UserName = request.UserName,
@@ -27,11 +54,28 @@ namespace CMS.Server.Services
             var result = await _userManager.CreateAsync(user, request.Password);
             if (!result.Succeeded)
             {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new InvalidOperationException($"User creation failed: {errors}");
+                errors.AddRange(result.Errors.Select(e => e.Description));
+                return new RegisterResult { Success = false, Errors = errors };
             }
 
-            return MapToResponse(user);
+            return new RegisterResult
+            {
+                Success = true,
+                User = MapToResponse(user)
+            };
+        }
+
+        private async Task<string> GenerateSuggestedUserNameAsync(string baseName)
+        {
+            var random = Random.Shared;
+            for (var i = 0; i < 10; i++)
+            {
+                var suggestion = $"{baseName}{random.Next(100, 999)}";
+                var exists = await _userManager.FindByNameAsync(suggestion);
+                if (exists is null)
+                    return suggestion;
+            }
+            return $"{baseName}{Guid.NewGuid().ToString("N")[..6]}";
         }
 
         public async Task<UserResponse?> GetUserByIdAsync(int id)
@@ -82,7 +126,7 @@ namespace CMS.Server.Services
             return result.Succeeded;
         }
 
-        private UserResponse MapToResponse(ApplicationUser user)
+        private static UserResponse MapToResponse(ApplicationUser user)
         {
             return new UserResponse
             {

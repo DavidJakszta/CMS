@@ -18,15 +18,11 @@ namespace CMS.Server.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            try
-            {
-                var user = await _userService.CreateUserAsync(request);
-                return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var result = await _userService.CreateUserAsync(request);
+            if (!result.Success)
+                return BadRequest(result);
+
+            return CreatedAtAction(nameof(GetById), new { id = result.User!.Id }, result.User);
         }
 
         [HttpGet]
