@@ -1,18 +1,30 @@
-﻿using CMS.Server.Interfaces;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using CMS.Server.Interfaces;
 using CMS.Server.Models;
 using CMS.Server.Models.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CMS.Server.Services
 {
     public class UserService : IUserService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly JwtSettings _jwt;
 
-        public UserService(UserManager<ApplicationUser> userManager)
+        public UserService(
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole<int>> roleManager,
+            IOptions<JwtSettings> jwt)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
+            _jwt = jwt.Value;
         }
 
         public async Task<RegisterResult> CreateUserAsync(RegisterRequest request)
@@ -65,17 +77,65 @@ namespace CMS.Server.Services
             };
         }
 
-        private async Task<string> GenerateSuggestedUserNameAsync(string baseName)
+        public async Task<LoginResult> LoginAsync(LoginRequest request)
         {
-            var random = Random.Shared;
-            for (var i = 0; i < 10; i++)
+            var user = await _userManager.FindByNameAsync(request.UserName);
+            if (user is null || !await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                var suggestion = $"{baseName}{random.Next(100, 999)}";
-                var exists = await _userManager.FindByNameAsync(suggestion);
-                if (exists is null)
-                    return suggestion;
+                return new LoginResult
+                {
+                    Success = false,
+                    Errors = ["Invalid username or password."]
+                };
             }
-            return $"{baseName}{Guid.NewGuid().ToString("N")[..6]}";
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new(ClaimTypes.Name, user.UserName ?? ""),
+                new(ClaimTypes.Email, user.Email ?? "")
+            };
+            claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _jwt.Issuer,
+                audience: _jwt.Audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(_jwt.ExpireMinutes),
+                signingCredentials: creds);
+
+            return new LoginResult
+            {
+                Success = true,
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                User = MapToResponse(user)
+            };
+        }
+
+        public async Task<bool> AssignRoleAsync(int userId, string role)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user is null) return false;
+
+            if (!await _roleManager.RoleExistsAsync(role))
+            {
+                await _roleManager.CreateAsync(new IdentityRole<int>(role));
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, role);
+            return result.Succeeded;
+        }
+
+        public async Task<List<string>> GetUserRolesAsync(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user is null) return [];
+
+            return (await _userManager.GetRolesAsync(user)).ToList();
         }
 
         public async Task<UserResponse?> GetUserByIdAsync(int id)
@@ -87,12 +147,7 @@ namespace CMS.Server.Services
         public async Task<List<UserResponse>> GetAllUsersAsync()
         {
             var users = await _userManager.Users.ToListAsync();
-            var responses = new List<UserResponse>();
-            foreach (var user in users)
-            {
-                responses.Add(MapToResponse(user));
-            }
-            return responses;
+            return users.Select(MapToResponse).ToList();
         }
 
         public async Task<UserResponse?> UpdateUserAsync(int id, UpdateUserRequest request)
@@ -124,6 +179,19 @@ namespace CMS.Server.Services
 
             var result = await _userManager.DeleteAsync(user);
             return result.Succeeded;
+        }
+
+        private async Task<string> GenerateSuggestedUserNameAsync(string baseName)
+        {
+            var random = Random.Shared;
+            for (var i = 0; i < 10; i++)
+            {
+                var suggestion = $"{baseName}{random.Next(100, 999)}";
+                var exists = await _userManager.FindByNameAsync(suggestion);
+                if (exists is null)
+                    return suggestion;
+            }
+            return $"{baseName}{Guid.NewGuid().ToString("N")[..6]}";
         }
 
         private static UserResponse MapToResponse(ApplicationUser user)

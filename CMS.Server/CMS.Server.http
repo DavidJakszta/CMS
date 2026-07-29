@@ -51,3 +51,26 @@ Content-Type: application/json
 DELETE {{CMS.Server_HostAddress}}/api/user/1
 
 ###
+
+POST {{CMS.Server_HostAddress}}/api/user/login
+Content-Type: application/json
+
+{
+  "userName": "admin",
+  "password": "Admin123!"
+}
+
+###
+
+POST {{CMS.Server_HostAddress}}/api/user/1/roles
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+"Admin"
+
+###
+
+GET {{CMS.Server_HostAddress}}/api/user/1/roles
+Authorization: Bearer {{token}}
+
+###

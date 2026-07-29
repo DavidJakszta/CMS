@@ -1,5 +1,8 @@
 ﻿using CMS.Server.Interfaces;
+using CMS.Server.Models;
 using CMS.Server.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CMS.Server.Controllers
@@ -9,10 +12,17 @@ namespace CMS.Server.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UserController(IUserService userService)
+        public UserController(
+            IUserService userService,
+            SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager)
         {
             _userService = userService;
+            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         [HttpPost("register")]
@@ -25,6 +35,28 @@ namespace CMS.Server.Controllers
             return CreatedAtAction(nameof(GetById), new { id = result.User!.Id }, result.User);
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            var loginResult = await _userService.LoginAsync(request);
+            if (!loginResult.Success)
+                return Unauthorized(loginResult);
+
+            var user = await _userManager.FindByNameAsync(request.UserName);
+            await _signInManager.SignInAsync(user!, isPersistent: true);
+
+            return Ok(loginResult);
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok(new { message = "Logged out." });
+        }
+
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -32,6 +64,7 @@ namespace CMS.Server.Controllers
             return Ok(users);
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -41,6 +74,7 @@ namespace CMS.Server.Controllers
             return Ok(user);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateUserRequest request)
         {
@@ -57,6 +91,7 @@ namespace CMS.Server.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -64,6 +99,24 @@ namespace CMS.Server.Controllers
             if (!deleted)
                 return NotFound();
             return NoContent();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{id}/roles")]
+        public async Task<IActionResult> AssignRole(int id, [FromBody] string role)
+        {
+            var success = await _userService.AssignRoleAsync(id, role);
+            if (!success)
+                return NotFound();
+            return Ok(new { message = $"Role '{role}' assigned to user {id}." });
+        }
+
+        [Authorize]
+        [HttpGet("{id}/roles")]
+        public async Task<IActionResult> GetRoles(int id)
+        {
+            var roles = await _userService.GetUserRolesAsync(id);
+            return Ok(roles);
         }
     }
 }

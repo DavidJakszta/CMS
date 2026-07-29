@@ -1,0 +1,65 @@
+nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.75rem 1.5rem;
+  background: #1a1a2e;
+  color: #fff;
+}
+nav a {
+  color: #ccc;
+  text-decoration: none;
+}
+nav a:hover, nav a.active {
+  color: #fff;
+}
+.brand {
+  font-weight: bold;
+  font-size: 1.25rem;
+  color: #fff !important;
+}
+.nav-links {
+  display: flex;
+  gap: 1.25rem;
+  flex: 1;
+}
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.username {
+  color: #aaa;
+  font-size: 0.9rem;
+}
+.btn-outline {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #ccc !important;
+  font-size: 0.9rem;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-outline:hover {
+  background: #fff;
+  color: #1a1a2e !important;
+}
+.btn-logout {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid #e74c3c;
+  border-radius: 4px;
+  background: transparent;
+  color: #e74c3c;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-logout:hover {
+  background: #e74c3c;
+  color: #fff;
+}

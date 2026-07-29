@@ -1,0 +1,54 @@
+<h2>Profile</h2>
+
+<div *ngIf="message" class="success">{{ message }}</div>
+<div *ngIf="error" class="errors"><p>{{ error }}</p></div>
+
+<div *ngIf="loading" class="loading">Loading profile...</div>
+
+<div *ngIf="user && !editing && !loading" class="profile-card">
+  <div class="profile-field">
+    <span class="profile-label">ID</span>
+    <span class="profile-value">{{ user.id }}</span>
+  </div>
+  <div class="profile-field">
+    <span class="profile-label">Username</span>
+    <span class="profile-value">{{ user.userName }}</span>
+  </div>
+  <div class="profile-field">
+    <span class="profile-label">Email</span>
+    <span class="profile-value">{{ user.email }}</span>
+  </div>
+  <div class="profile-field">
+    <span class="profile-label">Display Name</span>
+    <span class="profile-value">{{ user.displayName }}</span>
+  </div>
+  <div class="profile-field">
+    <span class="profile-label">Roles</span>
+    <span class="profile-value">
+      <span *ngIf="user.roles.length; else noRoles">{{ user.roles.join(', ') }}</span>
+      <ng-template #noRoles>None</ng-template>
+    </span>
+  </div>
+  <button (click)="startEdit()">Edit Profile</button>
+</div>
+
+<div *ngIf="user && editing && !loading" class="profile-card">
+  <form (ngSubmit)="save()">
+    <div class="profile-field">
+      <label class="profile-label">Username</label>
+      <input type="text" [(ngModel)]="editModel.userName" name="userName" />
+    </div>
+    <div class="profile-field">
+      <label class="profile-label">Email</label>
+      <input type="email" [(ngModel)]="editModel.email" name="email" />
+    </div>
+    <div class="profile-field">
+      <label class="profile-label">Display Name</label>
+      <input type="text" [(ngModel)]="editModel.displayName" name="displayName" />
+    </div>
+    <div class="profile-actions">
+      <button type="submit" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+      <button type="button" class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+    </div>
+  </form>
+</div>

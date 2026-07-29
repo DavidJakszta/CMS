@@ -1,1 +1,247 @@
-/* You can add global styles to this file, and also import other style files */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+h2 { margin-bottom: 1rem; }
+h3 { margin-bottom: 0.75rem; }
+h4 { margin-bottom: 0.5rem; }
+
+form div {
+  margin-bottom: 0.75rem;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+input:focus {
+  outline: none;
+  border-color: #1a1a2e;
+  box-shadow: 0 0 0 2px rgba(26, 26, 46, 0.15);
+}
+
+button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background: #1a1a2e;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #16213e;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: #c0392b;
+}
+
+.btn-danger:hover {
+  background: #a93226;
+}
+
+.btn-link {
+  background: none;
+  color: #1a1a2e;
+  text-decoration: underline;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn-link:hover {
+  color: #16213e;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  background: #f8f8f8;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+tr:hover td {
+  background: #fafafa;
+}
+
+.errors {
+  background: #fde8e8;
+  border: 1px solid #e74c3c;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  color: #c0392b;
+}
+
+.errors p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.success {
+  background: #e8fde8;
+  border: 1px solid #27ae60;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  color: #1e8449;
+}
+
+.edit-section {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.role-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.role-section input {
+  max-width: 200px;
+  margin-right: 0.5rem;
+}
+
+a {
+  color: #1a1a2e;
+}
+
+a:hover {
+  color: #16213e;
+}
+
+.input-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.input-row input {
+  max-width: 300px;
+}
+
+.input-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-error {
+  display: block;
+  color: #c0392b;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+}
+
+.suggestion {
+  display: inline-block;
+  background: #27ae60;
+  color: #fff;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.suggestion:hover {
+  background: #1e8449;
+}
+
+.profile-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1.5rem;
+  max-width: 500px;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.profile-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.15rem;
+}
+
+.profile-value {
+  font-size: 1rem;
+  color: #333;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.btn-cancel {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.btn-cancel:hover {
+  background: #f5f5f5;
+}
+
+.loading {
+  color: #888;
+  font-style: italic;
+}

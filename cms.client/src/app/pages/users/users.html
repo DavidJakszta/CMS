@@ -1,0 +1,30 @@
+<h2>Users</h2>
+
+<div *ngIf="error" class="errors"><p>{{ error }}</p></div>
+
+<div>
+  <input type="text" [(ngModel)]="search" (input)="applyFilter()" placeholder="Search by name, username, or email..." />
+</div>
+
+<div *ngIf="loading">Loading...</div>
+
+<table *ngIf="!loading && filteredUsers.length">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Display Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let user of filteredUsers">
+      <td>{{ user.id }}</td>
+      <td>{{ user.userName }}</td>
+      <td>{{ user.email }}</td>
+      <td>{{ user.displayName }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p *ngIf="!loading && !filteredUsers.length">No users found.</p>

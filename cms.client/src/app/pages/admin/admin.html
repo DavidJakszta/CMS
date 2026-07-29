@@ -1,0 +1,68 @@
+<h2>Admin - User Management</h2>
+
+<div *ngIf="message" class="success">{{ message }}</div>
+<div *ngIf="error" class="errors"><p>{{ error }}</p></div>
+
+<div>
+  <input type="text" [(ngModel)]="search" (input)="applyFilter()" placeholder="Filter users..." />
+  <a routerLink="/register" class="btn-link">+ New User</a>
+</div>
+
+<div *ngIf="loading">Loading...</div>
+
+<table *ngIf="!loading && filteredUsers.length">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Display Name</th>
+      <th>Roles</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let user of filteredUsers">
+      <td>{{ user.id }}</td>
+      <td>{{ user.userName }}</td>
+      <td>{{ user.email }}</td>
+      <td>{{ user.displayName }}</td>
+      <td>
+        <span *ngIf="user.roles.length">{{ user.roles.join(', ') }}</span>
+        <span *ngIf="!user.roles.length">-</span>
+      </td>
+      <td>
+        <button (click)="startEdit(user)">Edit</button>
+        <button (click)="confirmDelete(user)" class="btn-danger">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div *ngIf="editingUser" class="edit-section">
+  <h3>Editing: {{ editingUser.userName }}</h3>
+  <form (ngSubmit)="saveEdit()">
+    <div>
+      <label>Username</label>
+      <input type="text" [(ngModel)]="editModel.userName" name="adminUserName" />
+    </div>
+    <div>
+      <label>Email</label>
+      <input type="email" [(ngModel)]="editModel.email" name="adminEmail" />
+    </div>
+    <div>
+      <label>Display Name</label>
+      <input type="text" [(ngModel)]="editModel.displayName" name="adminDisplayName" />
+    </div>
+    <button type="submit" [disabled]="loading">Save</button>
+    <button type="button" (click)="cancelEdit()">Cancel</button>
+  </form>
+
+  <div class="role-section">
+    <h4>Assign Role</h4>
+    <input type="text" [(ngModel)]="newRole" name="newRole" placeholder="Role name" />
+    <button (click)="assignRole(editingUser)">Add Role</button>
+  </div>
+</div>
+
+<p *ngIf="!loading && !filteredUsers.length">No users found.</p>
