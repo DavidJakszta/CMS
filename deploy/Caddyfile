@@ -1,0 +1,10 @@
+# Replace with your actual domain for auto HTTPS
+# cms.yourdomain.com {
+#     reverse_proxy cms:8080
+# }
+
+# For testing with just the VM IP (HTTP only):
+# Replace <vm-public-ip> with your Oracle VM's public IP
+:80 {
+    reverse_proxy cms:8080
+}

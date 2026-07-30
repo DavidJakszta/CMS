@@ -1,0 +1,126 @@
+name: Build, Push, and Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Override image tag (defaults to git sha)"
+        required: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DOTNET_VERSION: "10.0"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=long
+            type=ref,event=branch
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  migrate:
+    if: github.event_name != 'pull_request'
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install dotnet-ef
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Run database migrations
+        id: migrate
+        env:
+          DB_CONN: ${{ secrets.DB_CONNECTION_STRING }}
+        run: |
+          echo "Starting database migration at $(date)" > migration-log.txt
+          echo "" >> migration-log.txt
+
+          dotnet ef database update \
+            --project CMS.Server/CMS.Server.csproj \
+            --connection "$DB_CONN" 2>&1 | tee -a migration-log.txt
+
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "Exit code: $EXIT_CODE" >> migration-log.txt
+          if [ $EXIT_CODE -ne 0 ]; then exit $EXIT_CODE; fi
+
+      - name: Upload migration log as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-log-${{ github.sha }}
+          path: migration-log.txt
+
+  deploy-image-ready:
+    if: github.event_name != 'pull_request'
+    needs: [build-and-push, migrate]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print image info
+        run: |
+          echo "=============================================="
+          echo "  Image pushed to GHCR"
+          echo "    Repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "    Tags:       sha-${{ github.sha }}, ${{ github.ref_name }}"
+          echo ""
+          echo "  To deploy on your Oracle VM:"
+          echo "    ssh oracle@<vm-ip>"
+          echo "    cd ~/cms && ./deploy/deploy.sh"
+          echo "=============================================="
+
+      # Optional: automatic SSH deployment
+      # Uncomment and add secrets (SSH_HOST, SSH_USER, SSH_KEY) to trigger VM update
+      # - name: Deploy via SSH
+      #   uses: appleboy/ssh-action@v1
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USER }}
+      #     key: ${{ secrets.SSH_KEY }}
+      #     script: |
+      #       cd ~/cms
+      #       git pull
+      #       ./deploy/deploy.sh
