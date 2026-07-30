@@ -59,6 +59,7 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: build-and-push
     runs-on: ubuntu-latest
+    environment: DEV
 
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +71,9 @@ jobs:
 
       - name: Install dotnet-ef
         run: dotnet tool install --global dotnet-ef
+
+      - name: Restore NuGet packages
+        run: dotnet restore CMS.Server/CMS.Server.csproj
 
       - name: Run database migrations
         id: migrate
