@@ -1,10 +1,14 @@
-# Replace with your actual domain for auto HTTPS
+# HTTP-only (current — works without a domain, for testing)
+# Access: http://<vm-ip>:8080
+:8080 {
+    reverse_proxy cms:8080
+}
+
+# --- Once you have a domain + port 80 open in the firewall: ---
+# Comment out the :8080 block above, then uncomment and replace
+# cms.yourdomain.com with your actual domain.
+# Caddy auto-provisions a Let's Encrypt cert.
+# Access: https://cms.yourdomain.com:8443
 # cms.yourdomain.com {
 #     reverse_proxy cms:8080
 # }
-
-# For testing with just the VM IP (HTTP only):
-# Replace <vm-public-ip> with your Oracle VM's public IP
-:80 {
-    reverse_proxy cms:8080
-}

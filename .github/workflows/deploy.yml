@@ -98,33 +98,53 @@ jobs:
           name: migration-log-${{ github.sha }}
           path: migration-log.txt
 
-  deploy-image-ready:
+  deploy:
     if: github.event_name != 'pull_request'
     needs: [build-and-push, migrate]
     runs-on: ubuntu-latest
+    environment: DEV
 
     steps:
-      - name: Print image info
-        run: |
-          echo "=============================================="
-          echo "  Image pushed to GHCR"
-          echo "    Repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
-          echo "    Tags:       sha-${{ github.sha }}, ${{ github.ref_name }}"
-          echo ""
-          echo "  To deploy on your Oracle VM:"
-          echo "    ssh oracle@<vm-ip>"
-          echo "    cd ~/cms && ./deploy/deploy.sh"
-          echo "=============================================="
+      - uses: actions/checkout@v4
 
-      # Optional: automatic SSH deployment
-      # Uncomment and add secrets (SSH_HOST, SSH_USER, SSH_KEY) to trigger VM update
-      # - name: Deploy via SSH
-      #   uses: appleboy/ssh-action@v1
-      #   with:
-      #     host: ${{ secrets.SSH_HOST }}
-      #     username: ${{ secrets.SSH_USER }}
-      #     key: ${{ secrets.SSH_KEY }}
-      #     script: |
-      #       cd ~/cms
-      #       git pull
-      #       ./deploy/deploy.sh
+      - name: Copy deploy folder to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "deploy/"
+          target: "~/cms"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+
+            # install docker + compose plugin if missing
+            if ! command -v docker &>/dev/null; then
+              sudo dnf install -y dnf-utils
+              sudo dnf config-manager --add-repo https://download.docker.com/linux/ol/docker-ce.repo
+              sudo dnf install -y docker-ce docker-ce-cli containerd.io
+              sudo systemctl enable --now docker
+              sudo usermod -aG docker $USER
+            fi
+            if ! docker compose version &>/dev/null; then
+              sudo dnf install -y docker-compose-plugin
+            fi
+
+            cd ~/cms/deploy
+
+            export DB_CONNECTION_STRING="${{ secrets.DB_CONNECTION_STRING }}"
+            export JWT_KEY="${{ secrets.JWT_KEY }}"
+            export JWT_ISSUER="${{ secrets.JWT_ISSUER }}"
+            export JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}"
+            export IMAGE_TAG="sha-${{ github.sha }}"
+            export GHCR_USER="${{ github.actor }}"
+            export GHCR_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+
+            bash deploy.sh
