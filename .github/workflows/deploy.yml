@@ -25,6 +25,7 @@ jobs:
 
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
+      image_name: ${{ steps.image-name.outputs.name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +47,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve image name
+        id: image-name
+        run: echo "name=ghcr.io/${REPO,,}" >> "$GITHUB_OUTPUT"
+        env:
+          REPO: ${{ github.repository }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -157,6 +164,7 @@ jobs:
             export JWT_ISSUER="${{ secrets.JWT_ISSUER }}"
             export JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}"
             export IMAGE_TAG="sha-${{ github.sha }}"
+            export CMS_IMAGE="${{ needs.build-and-push.outputs.image_name }}"
             export GHCR_USER="${{ github.actor }}"
             export GHCR_TOKEN="${{ secrets.GITHUB_TOKEN }}"
 

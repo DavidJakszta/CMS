@@ -1,6 +1,6 @@
 services:
   cms:
-    image: ${CMS_IMAGE:-ghcr.io/anomalyco/cms}:${IMAGE_TAG:-latest}
+    image: ${CMS_IMAGE:-ghcr.io/davidjakszta/cms}:${IMAGE_TAG:-latest}
     container_name: cms
     restart: unless-stopped
     expose:
