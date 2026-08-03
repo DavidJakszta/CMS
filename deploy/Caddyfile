@@ -1,14 +1,3 @@
-# HTTP-only (current — works without a domain, for testing)
-# Access: http://<vm-ip>:8080
-:8080 {
+davidjakszta.xyz, www.davidjakszta.xyz {
     reverse_proxy cms:8080
 }
-
-# --- Once you have a domain + port 80 open in the firewall: ---
-# Comment out the :8080 block above, then uncomment and replace
-# cms.yourdomain.com with your actual domain.
-# Caddy auto-provisions a Let's Encrypt cert.
-# Access: https://cms.yourdomain.com:8443
-# cms.yourdomain.com {
-#     reverse_proxy cms:8080
-# }
