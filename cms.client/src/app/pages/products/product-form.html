@@ -1,0 +1,27 @@
+<h2>{{ isEditing ? 'Edit Product' : 'New Product' }}</h2>
+
+<div *ngIf="error" class="errors"><p>{{ error }}</p></div>
+<div *ngIf="loading" class="loading">Loading product...</div>
+
+<form *ngIf="!loading" (ngSubmit)="submit()">
+  <div>
+    <label>Name</label>
+    <input type="text" [(ngModel)]="model.name" name="name" required />
+  </div>
+  <div>
+    <label>Price</label>
+    <input type="number" [(ngModel)]="model.price" name="price" min="0" step="0.01" required />
+  </div>
+  <div>
+    <label>Description</label>
+    <textarea [(ngModel)]="model.description" name="description" rows="5"></textarea>
+  </div>
+  <div>
+    <label>Picture URL</label>
+    <input type="text" [(ngModel)]="model.pictureUrl" name="pictureUrl" />
+  </div>
+  <div class="profile-actions">
+    <button type="submit" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+    <a routerLink="/products" class="btn-cancel-link">Cancel</a>
+  </div>
+</form>

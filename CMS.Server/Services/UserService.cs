@@ -16,15 +16,18 @@ namespace CMS.Server.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly JwtSettings _jwt;
+        private readonly IProductService _productService;
 
         public UserService(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole<int>> roleManager,
-            IOptions<JwtSettings> jwt)
+            IOptions<JwtSettings> jwt,
+            IProductService productService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _jwt = jwt.Value;
+            _productService = productService;
         }
 
         public async Task<RegisterResult> CreateUserAsync(RegisterRequest request)
@@ -141,13 +144,28 @@ namespace CMS.Server.Services
         public async Task<UserResponse?> GetUserByIdAsync(int id, RequestContext requester)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
-            return user is null ? null : MapToResponse(user, requester);
+            if (user is null) return null;
+
+            var response = MapToResponse(user, requester);
+            response.ProductCount = await _productService.GetProductCountAsync(user.Id);
+            return response;
         }
 
         public async Task<List<UserResponse>> GetAllUsersAsync(RequestContext requester)
         {
             var users = await _userManager.Users.ToListAsync();
-            return users.Select(u => MapToResponse(u, requester)).ToList();
+            var productCounts = await _productService.GetProductCountsAsync();
+
+            return users
+                .Select(u =>
+                {
+                    var response = MapToResponse(u, requester);
+                    response.ProductCount = productCounts.GetValueOrDefault(u.Id);
+                    return response;
+                })
+                .OrderByDescending(u => u.ProductCount)
+                .ThenBy(u => u.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         public async Task<UserResponse?> UpdateUserAsync(int id, UpdateUserRequest request, RequestContext requester)

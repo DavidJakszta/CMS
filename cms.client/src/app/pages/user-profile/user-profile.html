@@ -1,0 +1,40 @@
+<h2>User Profile</h2>
+
+<div *ngIf="error" class="errors"><p>{{ error }}</p></div>
+<div *ngIf="loading" class="loading">Loading user...</div>
+
+<div *ngIf="user && !loading" class="profile-card">
+  <div class="profile-header">
+    <span class="avatar avatar-lg">{{ avatarFor(user.displayName) }}</span>
+    <div>
+      <h3>{{ user.displayName || 'Unnamed' }}</h3>
+      <p *ngIf="user.userName" class="muted">@{{ user.userName }}</p>
+      <p *ngIf="user.email" class="muted">{{ user.email }}</p>
+      <p *ngIf="!user.userName" class="muted">Username and email are only visible to the user themselves and admins.</p>
+    </div>
+  </div>
+  <div class="profile-actions">
+    <a *ngIf="isSelf" routerLink="/profile" class="btn">Edit my profile</a>
+  </div>
+</div>
+
+<div *ngIf="user && !loading" class="user-products">
+  <h3>Product listings</h3>
+  <div *ngIf="productsLoading" class="loading">Loading products...</div>
+  <div *ngIf="!productsLoading && userProducts.length" class="product-grid">
+    <a *ngFor="let product of visibleProducts" [routerLink]="['/products', product.id]" class="product-card">
+      <div class="product-image" *ngIf="product.pictureUrl">
+        <img [src]="product.pictureUrl" [alt]="product.name" />
+      </div>
+      <div class="product-body">
+        <h3>{{ product.name }}</h3>
+        <span class="product-price">{{ product.price | currency }}</span>
+        <p class="product-desc">{{ product.description }}</p>
+      </div>
+    </a>
+  </div>
+  <p *ngIf="!productsLoading && !userProducts.length" class="muted">No product listings yet.</p>
+  <button *ngIf="userProducts.length > 3" (click)="showAllProducts = !showAllProducts">
+    {{ showAllProducts ? 'Show less' : 'Show more (' + userProducts.length + ')' }}
+  </button>
+</div>

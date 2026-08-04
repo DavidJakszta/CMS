@@ -1,0 +1,16 @@
+<div class="pagination" *ngIf="totalItems > 0">
+  <span class="pagination-label">Items per page:</span>
+  <div class="page-size-buttons">
+    <button
+      *ngFor="let size of [5, 10, 20]"
+      [class.active]="pageSize === size"
+      (click)="selectPageSize(size)">
+      {{ size }}
+    </button>
+  </div>
+  <span class="pagination-info">Showing {{ startIndex }}–{{ endIndex }} of {{ totalItems }}</span>
+  <div class="pagination-nav">
+    <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage <= 1">Prev</button>
+    <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage >= totalPages">Next</button>
+  </div>
+</div>

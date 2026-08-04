@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { getInitials } from '../../utils/text.util';
 
 @Component({
   selector: 'app-navbar',
@@ -16,6 +17,10 @@ export class Navbar {
   get currentUserName(): string | null {
     const user = this.auth.getCurrentUser();
     return user ? (user.displayName || user.userName) : null;
+  }
+  get currentUserInitials(): string {
+    const user = this.auth.getCurrentUser();
+    return getInitials(user ? (user.displayName || user.userName) : '');
   }
 
   logout(): void {

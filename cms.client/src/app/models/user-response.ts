@@ -4,4 +4,5 @@ export interface UserResponse {
   email: string;
   displayName: string;
   roles: string[];
+  productCount: number;
 }

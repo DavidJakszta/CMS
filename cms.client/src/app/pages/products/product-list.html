@@ -1,0 +1,42 @@
+<h2>Products</h2>
+
+<div *ngIf="error" class="errors"><p>{{ error }}</p></div>
+
+<div class="page-actions">
+  <div *ngIf="auth.isAuthenticated()">
+    <a routerLink="/products/new" class="btn">+ New Product</a>
+  </div>
+</div>
+
+<div class="product-toolbar">
+  <input type="text" [(ngModel)]="search" (input)="onSearchChange()" placeholder="Search by name or description..." />
+  <app-price-filter (change)="onPriceChange($event)"></app-price-filter>
+</div>
+
+<div *ngIf="loading" class="loading">Loading products...</div>
+
+<div *ngIf="!loading && filteredProducts.length" class="product-grid">
+  <a *ngFor="let product of pagedProducts" [routerLink]="['/products', product.id]" class="product-card">
+    <div class="product-image" *ngIf="product.pictureUrl">
+      <img [src]="product.pictureUrl" [alt]="product.name" />
+    </div>
+    <div class="product-body">
+      <h3>{{ product.name }}</h3>
+      <span class="product-price">{{ product.price | currency }}</span>
+      <p class="product-desc">{{ product.description }}</p>
+      <span class="product-owner" [routerLink]="['/users', product.ownerId]">by {{ product.ownerName || 'Unknown' }}</span>
+    </div>
+  </a>
+</div>
+
+<app-pagination
+  *ngIf="!loading && filteredProducts.length"
+  [totalItems]="filteredProducts.length"
+  [pageSize]="pageSize"
+  [currentPage]="currentPage"
+  (pageSizeChange)="onPageSizeChange($event)"
+  (pageChange)="onPageChange($event)">
+</app-pagination>
+
+<p *ngIf="!loading && !products.length">No products yet.</p>
+<p *ngIf="!loading && products.length && !filteredProducts.length">No products match your search or price range.</p>

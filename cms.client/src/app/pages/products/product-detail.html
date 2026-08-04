@@ -1,0 +1,45 @@
+<h2>Product</h2>
+
+<div *ngIf="error" class="errors"><p>{{ error }}</p></div>
+<div *ngIf="loading" class="loading">Loading product...</div>
+
+<div *ngIf="product && !loading" class="product-detail">
+  <div class="product-image" *ngIf="product.pictureUrl">
+    <img [src]="product.pictureUrl" [alt]="product.name" />
+  </div>
+  <div class="product-info">
+    <h2>{{ product.name }}</h2>
+    <span class="product-price">{{ product.price | currency }}</span>
+    <p class="product-desc">{{ product.description }}</p>
+    <p>
+      Listed by
+      <a [routerLink]="['/users', product.ownerId]">{{ product.ownerName || 'Unknown' }}</a>
+    </p>
+
+    <div class="demo-actions">
+      <button (click)="runDemo('message')">Message Seller</button>
+      <button (click)="runDemo('buy')">Instant Buy</button>
+    </div>
+
+    <div *ngIf="canModify" class="demo-actions">
+      <a [routerLink]="['/products', product.id, 'edit']" class="btn">Edit</a>
+      <button (click)="delete()" class="btn-danger">Delete</button>
+    </div>
+  </div>
+</div>
+
+<app-modal
+  *ngIf="demoAction"
+  [title]="demoRequiresAuth ? 'Account required' : 'End of Demo'"
+  (close)="closeDemo()">
+  <ng-container *ngIf="demoRequiresAuth">
+    <p>You need an account to {{ demoAction === 'buy' ? 'make a purchase' : 'send a message' }}.</p>
+    <div class="demo-notice-actions">
+      <a routerLink="/login" class="btn">Login</a>
+      <a routerLink="/register" class="btn">Register</a>
+    </div>
+  </ng-container>
+  <ng-container *ngIf="!demoRequiresAuth">
+    <p>End of Demo. {{ demoAction === 'buy' ? 'Checkout' : 'Messaging' }} is not implemented yet.</p>
+  </ng-container>
+</app-modal>

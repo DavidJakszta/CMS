@@ -29,8 +29,7 @@ export class Profile implements OnInit {
         next: u => {
           this.user = u;
           this.editModel = { userName: u.userName, email: u.email, displayName: u.displayName };
-          this.loading = false;
-          this.cdr.detectChanges();
+          this.loadRoles(userId);
         },
         error: () => {
           this.error = 'Failed to load profile.';
@@ -39,6 +38,20 @@ export class Profile implements OnInit {
         }
       });
     }
+  }
+
+  loadRoles(userId: number): void {
+    this.userService.getRoles(userId).subscribe({
+      next: roles => {
+        if (this.user) this.user.roles = roles;
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   startEdit(): void {

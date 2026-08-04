@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { UserResponse } from '../../models/user-response';
+import { getInitials } from '../../utils/text.util';
 
 @Component({
   selector: 'app-users',
@@ -13,11 +14,22 @@ export class Users implements OnInit {
   search = '';
   loading = false;
   error = '';
+  pageSize = 10;
+  currentPage = 1;
 
   constructor(private userService: UserService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadUsers();
+  }
+
+  get pagedUsers(): UserResponse[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredUsers.slice(start, start + this.pageSize);
+  }
+
+  avatarFor(name: string): string {
+    return getInitials(name);
   }
 
   loadUsers(): void {
@@ -41,9 +53,19 @@ export class Users implements OnInit {
   applyFilter(): void {
     const q = this.search.toLowerCase();
     this.filteredUsers = this.users.filter(u =>
-      u.userName.toLowerCase().includes(q) ||
-      u.displayName.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q)
+      u.displayName.toLowerCase().includes(q)
     );
+    this.currentPage = 1;
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 1;
+    this.cdr.detectChanges();
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.cdr.detectChanges();
   }
 }

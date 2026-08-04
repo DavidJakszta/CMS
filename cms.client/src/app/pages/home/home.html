@@ -1,0 +1,27 @@
+<section class="hero">
+  <h1>CMS — a full-stack showoff project</h1>
+  <p class="tagline">
+    This site is a demonstration of a complete full-stack application: ASP.NET Core backend,
+    PostgreSQL database, Angular frontend, and an automated Docker deployment.
+  </p>
+  <p>
+    Browse the user directory or the product catalog below. You can explore everything
+    without an account — sign up to create products and interact with other users.
+  </p>
+</section>
+
+<div class="home-links">
+  <a routerLink="/users" class="home-card">
+    <h2>Users</h2>
+    <p>Browse registered users and visit their public profiles.</p>
+  </a>
+  <a routerLink="/products" class="home-card">
+    <h2>Products</h2>
+    <p>Explore the product catalog and its listings.</p>
+  </a>
+</div>
+
+<div *ngIf="!auth.isAuthenticated()" class="home-cta">
+  <a routerLink="/register" class="btn-outline">Create an account</a>
+  <a routerLink="/login" class="btn-outline">Login</a>
+</div>

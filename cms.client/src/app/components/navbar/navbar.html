@@ -1,12 +1,16 @@
 <nav>
-  <a routerLink="/users" class="brand">CMS</a>
+  <a routerLink="/" class="brand">CMS</a>
   <div class="nav-links">
-    <a routerLink="/users" *ngIf="isAuthenticated">Users</a>
+    <a routerLink="/users">Users</a>
+    <a routerLink="/products">Products</a>
     <a routerLink="/profile" *ngIf="isAuthenticated">Profile</a>
     <a routerLink="/admin" *ngIf="isAdmin">Admin</a>
   </div>
   <div class="nav-auth">
-    <span *ngIf="currentUserName" class="username">{{ currentUserName }}</span>
+    <a *ngIf="currentUserName" routerLink="/profile" class="user-link">
+      <span class="avatar avatar-sm">{{ currentUserInitials }}</span>
+      <span class="username">{{ currentUserName }}</span>
+    </a>
     <ng-container *ngIf="isAuthenticated; else authLinks">
       <button (click)="logout()" class="btn-logout">Logout</button>
     </ng-container>

@@ -10,5 +10,7 @@ namespace CMS.Server.Interfaces
         Task<ProductResponse> CreateProductAsync(ProductRequest request, int ownerId);
         Task<ProductResponse?> UpdateProductAsync(int id, ProductRequest request, RequestContext requester);
         Task<bool> DeleteProductAsync(int id, RequestContext requester);
+        Task<int> GetProductCountAsync(int userId);
+        Task<Dictionary<int, int>> GetProductCountsAsync();
     }
 }

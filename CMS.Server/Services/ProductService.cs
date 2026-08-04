@@ -87,6 +87,19 @@ namespace CMS.Server.Services
             return true;
         }
 
+        public async Task<int> GetProductCountAsync(int userId)
+        {
+            return await _db.Products.CountAsync(p => p.OwnerId == userId);
+        }
+
+        public async Task<Dictionary<int, int>> GetProductCountsAsync()
+        {
+            return await _db.Products
+                .GroupBy(p => p.OwnerId)
+                .Select(g => new { OwnerId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.OwnerId, x => x.Count);
+        }
+
         private static bool CanModify(Product product, RequestContext requester)
         {
             return requester.IsAdmin || requester.UserId == product.OwnerId;

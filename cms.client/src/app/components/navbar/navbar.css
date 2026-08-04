@@ -3,7 +3,7 @@ nav {
   align-items: center;
   gap: 2rem;
   padding: 0.75rem 1.5rem;
-  background: #1a1a2e;
+  background: var(--brand-dark, #1a1a2e);
   color: #fff;
 }
 nav a {
@@ -37,6 +37,21 @@ nav a:hover, nav a.active {
   color: #aaa;
   font-size: 0.9rem;
 }
+
+.user-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #aaa;
+}
+
+.user-link:hover {
+  color: #fff;
+}
+
+.user-link .avatar-sm {
+  margin-right: 0;
+}
 .btn-outline {
   padding: 0.35rem 0.85rem;
   border: 1px solid #ccc;
@@ -47,7 +62,7 @@ nav a:hover, nav a.active {
 }
 .btn-outline:hover {
   background: #fff;
-  color: #1a1a2e !important;
+  color: var(--brand-dark, #1a1a2e) !important;
 }
 .btn-logout {
   padding: 0.35rem 0.85rem;
