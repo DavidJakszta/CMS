@@ -1,0 +1,25 @@
+name: Seed Development Database
+
+on:
+  schedule:
+    # Every Sunday at 04:00 UTC. GitHub Actions cron runs in UTC;
+    - cron: '0 4 * * 0'
+  workflow_dispatch: {}
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    env:
+      ConnectionStrings__DefaultConnection: ${{ secrets.DEV_DB_CONNECTION_STRING }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build server (skip Angular client)
+        run: dotnet build CMS.Server/CMS.Server.csproj -p:BuildProjectReferences=false -c Release -o out
+
+      - name: Wipe and seed database
+        run: dotnet out/CMS.Server.dll --seed

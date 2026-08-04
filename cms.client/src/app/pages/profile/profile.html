@@ -6,6 +6,13 @@
 <div *ngIf="loading" class="loading">Loading profile...</div>
 
 <div *ngIf="user && !editing && !loading" class="profile-card">
+  <div class="profile-header">
+    <span class="avatar avatar-lg">{{ initials }}</span>
+    <div>
+      <h3>{{ user.displayName }}</h3>
+      <p class="muted">@{{ user.userName }}</p>
+    </div>
+  </div>
   <div class="profile-field">
     <span class="profile-label">ID</span>
     <span class="profile-value">{{ user.id }}</span>

@@ -63,8 +63,17 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IDataSeeder, DataSeeder>();
 
 var app = builder.Build();
+
+if (args.Contains("--seed"))
+{
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
+    await seeder.WipeAndSeedAsync();
+    return;
+}
 
 app.UseDefaultFiles();
 app.MapStaticAssets();

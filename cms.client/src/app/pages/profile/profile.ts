@@ -3,6 +3,7 @@ import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { UserResponse } from '../../models/user-response';
 import { UpdateUserRequest } from '../../models/update-user-request';
+import { getInitials } from '../../utils/text.util';
 
 @Component({
   selector: 'app-profile',
@@ -19,6 +20,10 @@ export class Profile implements OnInit {
   error = '';
 
   constructor(private auth: AuthService, private userService: UserService, private cdr: ChangeDetectorRef) {}
+
+  get initials(): string {
+    return getInitials(this.user ? (this.user.displayName || this.user.userName) : '');
+  }
 
   ngOnInit(): void {
     const userId = this.auth.getCurrentUserId();
