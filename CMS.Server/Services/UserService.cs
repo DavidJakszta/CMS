@@ -93,30 +93,38 @@ namespace CMS.Server.Services
             }
 
             var roles = await _userManager.GetRolesAsync(user);
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new(ClaimTypes.Name, user.UserName ?? ""),
-                new(ClaimTypes.Email, user.Email ?? "")
-            };
-            claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _jwt.Issuer,
-                audience: _jwt.Audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwt.ExpireMinutes),
-                signingCredentials: creds);
-
-            return new LoginResult
+            var loginResult = new LoginResult
             {
                 Success = true,
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
                 User = MapToResponse(user)
             };
+            loginResult.User.Roles = roles.ToList();
+
+            if (request.RequestToken)
+            {
+                var claims = new List<Claim>
+                {
+                    new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new(ClaimTypes.Name, user.UserName ?? ""),
+                    new(ClaimTypes.Email, user.Email ?? "")
+                };
+                claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(
+                    issuer: _jwt.Issuer,
+                    audience: _jwt.Audience,
+                    claims: claims,
+                    expires: DateTime.UtcNow.AddMinutes(_jwt.ExpireMinutes),
+                    signingCredentials: creds);
+
+                loginResult.Token = new JwtSecurityTokenHandler().WriteToken(token);
+            }
+
+            return loginResult;
         }
 
         public async Task<bool> AssignRoleAsync(int userId, string role)
