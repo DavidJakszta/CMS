@@ -11,6 +11,7 @@ namespace CMS.Server.DB
         : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
     {
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<Product> Products { get; set; }
 
         public ApplicationDbContext( DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -32,6 +33,12 @@ namespace CMS.Server.DB
             builder.Entity<ApplicationUser>()
                 .HasIndex(u => u.DisplayName)
                 .IsUnique();
+
+            builder.Entity<Product>()
+                .HasOne(p => p.Owner)
+                .WithMany()
+                .HasForeignKey(p => p.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

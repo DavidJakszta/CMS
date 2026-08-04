@@ -1,0 +1,127 @@
+@CMS.Server_HostAddress = http://localhost:5269
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjExIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJleHAiOjE3ODU4NjcwMjEsImlzcyI6IkNNUy5TZXJ2ZXIiLCJhdWQiOiJDTVMuQ2xpZW50In0.jpA88Auivzrtwt95fkxx38joY6C-qVZqg9ZQcQnz1tM
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NssWltcy9uYW1laWRlbnRpZmllciI6IjExIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJleHAiOjE3ODU4NjcwMjEsImlzcyI6IkNNUy5TZXJ2ZXIiLCJhdWQiOiJDTVMuQ2xpZW50In0.jpA88Auivzrtwt95fkxx38joY6C-qVZqg9ZQcQnz1tM
+@adminId = 11
+
+### ============================================================
+### HOW TO GET TOKENS (no response-chaining needed):
+###   1. Run the adminLogin request below.
+###   2. Copy the "token" value from the JSON response.
+###   3. Paste it into the @adminToken variable at the top.
+###   4. Repeat with userLogin for @userToken.
+### Tokens expire after 60 minutes - re-run login and re-paste.
+### @adminId = the id of the admin user (11 in the current DB).
+### ============================================================
+
+# @name adminLogin
+POST http://localhost:5269/api/user/login
+Content-Type: application/json
+
+{
+  "userName": "admin",
+  "password": "Admin123!"
+}
+
+###
+
+# @name userLogin
+POST http://localhost:5269/api/user/login
+Content-Type: application/json
+
+{
+  "userName": "testuser1532",
+  "password": "Password123!"
+}
+
+###
+
+### ============================================================
+### Product CRUD (admin token)
+### ============================================================
+
+# List all products
+GET {{CMS.Server_HostAddress}}/api/product
+Authorization: Bearer {{adminToken}}
+
+###
+
+# Get a single product by id
+GET {{CMS.Server_HostAddress}}/api/product/1
+Authorization: Bearer {{adminToken}}
+
+###
+
+# Create a product (current user becomes owner) -> 201
+POST {{CMS.Server_HostAddress}}/api/product
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Wireless Mouse",
+  "price": 29.99,
+  "description": "A comfortable wireless mouse with a 2.4 GHz connection.",
+  "pictureUrl": "https://example.com/mouse.jpg"
+}
+
+###
+
+# Update a product (owner or admin only) -> 200
+PUT {{CMS.Server_HostAddress}}/api/product/2
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Wireless Mouse Pro",
+  "price": 39.99,
+  "description": "An upgraded wireless mouse.",
+  "pictureUrl": "https://example.com/mouse-pro.jpg"
+}
+
+###
+
+# Delete a product (owner or admin only) -> 204
+DELETE {{CMS.Server_HostAddress}}/api/product/2
+Authorization: Bearer {{adminToken}}
+
+###
+
+### ============================================================
+### Owner/admin restriction checks (regular user token)
+### ============================================================
+
+# Non-owner tries to update an admin's product -> 403
+PUT {{CMS.Server_HostAddress}}/api/product/1
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "name": "Hijacked",
+  "price": 1,
+  "description": "should be rejected",
+  "pictureUrl": null
+}
+
+###
+
+# Non-owner tries to delete an admin's product -> 403
+DELETE {{CMS.Server_HostAddress}}/api/product/1
+Authorization: Bearer {{userToken}}
+
+###
+
+# A regular user updates the admin's profile -> 403
+PUT {{CMS.Server_HostAddress}}/api/user/{{adminId}}
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "displayName": "Hijacked Name"
+}
+
+###
+
+# A regular user views the admin's profile -> masked (no userName/email)
+GET {{CMS.Server_HostAddress}}/api/user/{{adminId}}
+Authorization: Bearer {{userToken}}
+
+###

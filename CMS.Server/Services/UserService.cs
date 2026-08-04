@@ -138,22 +138,25 @@ namespace CMS.Server.Services
             return (await _userManager.GetRolesAsync(user)).ToList();
         }
 
-        public async Task<UserResponse?> GetUserByIdAsync(int id)
+        public async Task<UserResponse?> GetUserByIdAsync(int id, RequestContext requester)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
-            return user is null ? null : MapToResponse(user);
+            return user is null ? null : MapToResponse(user, requester);
         }
 
-        public async Task<List<UserResponse>> GetAllUsersAsync()
+        public async Task<List<UserResponse>> GetAllUsersAsync(RequestContext requester)
         {
             var users = await _userManager.Users.ToListAsync();
-            return users.Select(MapToResponse).ToList();
+            return users.Select(u => MapToResponse(u, requester)).ToList();
         }
 
-        public async Task<UserResponse?> UpdateUserAsync(int id, UpdateUserRequest request)
+        public async Task<UserResponse?> UpdateUserAsync(int id, UpdateUserRequest request, RequestContext requester)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user is null) return null;
+
+            if (!CanModify(id, requester))
+                throw new UnauthorizedAccessException();
 
             if (request.UserName is not null)
                 user.UserName = request.UserName;
@@ -169,7 +172,7 @@ namespace CMS.Server.Services
                 throw new InvalidOperationException($"User update failed: {errors}");
             }
 
-            return MapToResponse(user);
+            return MapToResponse(user, requester);
         }
 
         public async Task<bool> DeleteUserAsync(int id)
@@ -179,6 +182,11 @@ namespace CMS.Server.Services
 
             var result = await _userManager.DeleteAsync(user);
             return result.Succeeded;
+        }
+
+        private static bool CanModify(int targetUserId, RequestContext requester)
+        {
+            return requester.IsAdmin || requester.UserId == targetUserId;
         }
 
         private async Task<string> GenerateSuggestedUserNameAsync(string baseName)
@@ -201,6 +209,18 @@ namespace CMS.Server.Services
                 Id = user.Id,
                 UserName = user.UserName ?? string.Empty,
                 Email = user.Email ?? string.Empty,
+                DisplayName = user.DisplayName
+            };
+        }
+
+        private static UserResponse MapToResponse(ApplicationUser user, RequestContext requester)
+        {
+            var isSelfOrAdmin = requester.IsAdmin || requester.UserId == user.Id;
+            return new UserResponse
+            {
+                Id = user.Id,
+                UserName = isSelfOrAdmin ? user.UserName ?? string.Empty : string.Empty,
+                Email = isSelfOrAdmin ? user.Email ?? string.Empty : string.Empty,
                 DisplayName = user.DisplayName
             };
         }

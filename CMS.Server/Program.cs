@@ -62,6 +62,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 

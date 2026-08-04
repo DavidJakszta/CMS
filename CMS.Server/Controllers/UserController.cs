@@ -1,4 +1,5 @@
-﻿using CMS.Server.Interfaces;
+﻿using System.Security.Claims;
+using CMS.Server.Interfaces;
 using CMS.Server.Models;
 using CMS.Server.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -56,19 +57,17 @@ namespace CMS.Server.Controllers
             return Ok(new { message = "Logged out." });
         }
 
-        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var users = await _userService.GetAllUsersAsync();
+            var users = await _userService.GetAllUsersAsync(GetCurrentRequester());
             return Ok(users);
         }
 
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var user = await _userService.GetUserByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id, GetCurrentRequester());
             if (user is null)
                 return NotFound();
             return Ok(user);
@@ -80,10 +79,14 @@ namespace CMS.Server.Controllers
         {
             try
             {
-                var user = await _userService.UpdateUserAsync(id, request);
+                var user = await _userService.UpdateUserAsync(id, request, GetCurrentRequester());
                 if (user is null)
                     return NotFound();
                 return Ok(user);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
             }
             catch (InvalidOperationException ex)
             {
@@ -117,6 +120,13 @@ namespace CMS.Server.Controllers
         {
             var roles = await _userService.GetUserRolesAsync(id);
             return Ok(roles);
+        }
+
+        private RequestContext GetCurrentRequester()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = int.TryParse(userIdClaim, out var parsed) ? parsed : (int?)null;
+            return new RequestContext(userId, User.IsInRole("Admin"));
         }
     }
 }
