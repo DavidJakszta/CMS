@@ -9,8 +9,14 @@ on:
 jobs:
   seed:
     runs-on: ubuntu-latest
+    # DB_CONNECTION_STRING, ADMIN_PASSWORD, ADMIN_USERNAME, ADMIN_EMAIL
+    # are environment-level secrets on DEV
+    environment: DEV
     env:
-      ConnectionStrings__DefaultConnection: ${{ secrets.DEV_DB_CONNECTION_STRING }}
+      ConnectionStrings__DefaultConnection: ${{ secrets.DB_CONNECTION_STRING }}
+      Seed__AdminPassword: ${{ secrets.ADMIN_PASSWORD }}
+      Seed__AdminUserName: ${{ secrets.ADMIN_USERNAME }}
+      Seed__AdminEmail: ${{ secrets.ADMIN_EMAIL }}
     steps:
       - uses: actions/checkout@v4
 

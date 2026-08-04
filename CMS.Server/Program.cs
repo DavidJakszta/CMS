@@ -17,6 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<SeedSettings>(builder.Configuration.GetSection("Seed"));
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -71,7 +72,15 @@ if (args.Contains("--seed"))
 {
     using var scope = app.Services.CreateScope();
     var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
-    await seeder.WipeAndSeedAsync();
+    try
+    {
+        await seeder.WipeAndSeedAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Seeding failed: {ex.Message}");
+        Environment.ExitCode = 1;
+    }
     return;
 }
 

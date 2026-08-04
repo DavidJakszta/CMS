@@ -4,13 +4,13 @@ using CMS.Server.Interfaces;
 using CMS.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace CMS.Server.Services
 {
     public class DataSeeder : IDataSeeder
     {
-        private const string DefaultPassword = "Password123!";
-        private const string AdminEmail = "admin@cms.local";
+        private const string DummyPassword = "Password123!";
         private const string AdminRole = "Admin";
         private const int UserCount = 100;
         private const int ProductCount = 100;
@@ -18,22 +18,32 @@ namespace CMS.Server.Services
         private readonly ApplicationDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly IOptions<SeedSettings> _seed;
         private readonly ILogger<DataSeeder> _logger;
 
         public DataSeeder(
             ApplicationDbContext db,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole<int>> roleManager,
+            IOptions<SeedSettings> seed,
             ILogger<DataSeeder> logger)
         {
             _db = db;
             _userManager = userManager;
             _roleManager = roleManager;
+            _seed = seed;
             _logger = logger;
         }
 
         public async Task WipeAndSeedAsync(CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(_db.Database.GetDbConnection().ConnectionString))
+                throw new InvalidOperationException(
+                    "Cannot seed: 'ConnectionStrings:DefaultConnection' is not configured. " +
+                    "Set it via the ConnectionStrings__DefaultConnection environment variable.");
+
+            ValidateAdminSettings();
+
             await WipeAsync(cancellationToken);
 
             _logger.LogInformation(
@@ -42,8 +52,25 @@ namespace CMS.Server.Services
             await SeedProductsAsync(users, cancellationToken);
 
             _logger.LogInformation(
-                "Done. {UserCount} users (incl. {AdminEmail}), {ProductCount} products. All passwords: {DefaultPassword}",
-                users.Count, AdminEmail, ProductCount, DefaultPassword);
+                "Done. {UserCount} users and {ProductCount} products. Dummy users share the dev password '{DummyPassword}'; " +
+                "the admin account is created from the Seed configuration.",
+                users.Count, ProductCount, DummyPassword);
+        }
+
+        private void ValidateAdminSettings()
+        {
+            var missing = new List<string>();
+            if (string.IsNullOrWhiteSpace(_seed.Value.AdminPassword))
+                missing.Add("Seed:AdminPassword");
+            if (string.IsNullOrWhiteSpace(_seed.Value.AdminUserName))
+                missing.Add("Seed:AdminUserName");
+            if (string.IsNullOrWhiteSpace(_seed.Value.AdminEmail))
+                missing.Add("Seed:AdminEmail");
+
+            if (missing.Count > 0)
+                throw new InvalidOperationException(
+                    $"Cannot seed: admin account is not configured. Set {string.Join(", ", missing)} " +
+                    "(e.g. via the Seed__AdminPassword, Seed__AdminUserName and Seed__AdminEmail environment variables).");
         }
 
         private async Task WipeAsync(CancellationToken cancellationToken)
@@ -79,7 +106,7 @@ namespace CMS.Server.Services
                 user.Email = EnsureUnique(user.Email, seenEmails);
                 user.DisplayName = EnsureUnique(user.DisplayName, seenDisplayNames);
 
-                var result = await _userManager.CreateAsync(user, DefaultPassword);
+                var result = await _userManager.CreateAsync(user, DummyPassword);
                 if (!result.Succeeded)
                     throw new InvalidOperationException(
                         $"Failed to create user '{user.Email}': {string.Join("; ", result.Errors)}");
@@ -98,19 +125,19 @@ namespace CMS.Server.Services
         {
             await EnsureRoleAsync(AdminRole);
 
-            var existing = await _userManager.FindByEmailAsync(AdminEmail);
+            var existing = await _userManager.FindByEmailAsync(_seed.Value.AdminEmail);
             if (existing is not null)
                 return existing;
 
             var admin = new ApplicationUser
             {
-                UserName = "admin",
-                Email = AdminEmail,
-                DisplayName = "System Administrator",
+                UserName = _seed.Value.AdminUserName,
+                Email = _seed.Value.AdminEmail,
+                DisplayName = _seed.Value.AdminDisplayName,
                 EmailConfirmed = true
             };
 
-            var result = await _userManager.CreateAsync(admin, DefaultPassword);
+            var result = await _userManager.CreateAsync(admin, _seed.Value.AdminPassword);
             if (!result.Succeeded)
                 throw new InvalidOperationException(
                     $"Failed to create admin user: {string.Join("; ", result.Errors)}");
