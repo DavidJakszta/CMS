@@ -377,6 +377,39 @@ a:hover {
   background: #f0f0f0;
 }
 
+.sort-select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+/* Products layout: pagination beside the grid */
+.products-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.products-layout .product-grid {
+  flex: 1;
+  min-width: 0;
+}
+
+.products-layout .pagination {
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 0;
+  min-width: 220px;
+  padding-top: 0.5rem;
+}
+
+.products-layout .pagination-info {
+  margin-left: 0;
+}
+
 /* Home */
 .hero {
   max-width: 700px;
